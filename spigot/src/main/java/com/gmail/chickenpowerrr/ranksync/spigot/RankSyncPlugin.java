@@ -14,13 +14,13 @@ import com.gmail.chickenpowerrr.ranksync.spigot.command.UnSyncCommand;
 import com.gmail.chickenpowerrr.ranksync.spigot.listener.AsyncPlayerPreLoginEventListener;
 import com.gmail.chickenpowerrr.ranksync.spigot.listener.PlayerQuitEventListener;
 import com.gmail.chickenpowerrr.ranksync.spigot.roleresource.VaultRankResource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+
+import java.util.*;
+
 import lombok.Getter;
 import lombok.Setter;
+import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.event.node.NodeMutateEvent;
 import net.milkbowl.vault.permission.Permission;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
@@ -57,6 +57,9 @@ public final class RankSyncPlugin extends JavaPlugin implements RankSyncServerPl
   public void onEnable() {
     try {
       enable();
+      for (Bot<?, ?> bot : bots.values()) {
+        Bukkit.getScheduler().runTaskAsynchronously(this, bot::updateUsers);
+      }
       Metrics metrics = new Metrics(this, 5068);
       metrics.addCustomChart(
           new SimplePie("used_storage", () -> getConfigString("database.type")));
@@ -125,6 +128,12 @@ public final class RankSyncPlugin extends JavaPlugin implements RankSyncServerPl
     Bukkit.getPluginManager()
         .registerEvents(new AsyncPlayerPreLoginEventListener(this.linkHelper), this);
     Bukkit.getPluginManager().registerEvents(new PlayerQuitEventListener(this.linkHelper), this);
+    if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
+      LuckPermsProvider.get().getEventBus().subscribe(this, NodeMutateEvent.class, event -> {
+        UUID playerUuid = event.getLuckPerms().getUserManager().getUser(event.getTarget().getFriendlyName()).getUniqueId();
+        linkHelper.updateRanks(playerUuid);
+      });
+    }
   }
 
   /**
@@ -268,7 +277,11 @@ public final class RankSyncPlugin extends JavaPlugin implements RankSyncServerPl
         syncedRanks.add(new com.gmail.chickenpowerrr.ranksync.server.link.Link(
             minecraftRanks, platformRanks,
             Optional.ofNullable(rankInfo.getString("name-format"))
-                .orElse(getConfig().getString("discord.name-format")), bot));
+                .orElse(getConfig().getString("discord.name-format")),
+                Optional.ofNullable(rankInfo.getInt("priority"))
+                        .orElse(getConfig().getInt("discord.priority"))
+                ,
+                bot));
       });
     });
 

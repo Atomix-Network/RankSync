@@ -49,4 +49,9 @@ public interface RankHelper {
    * Returns all links
    */
   Collection<Link> getLinks();
+
+  /**
+   * Returns all links
+   */
+  Collection<Link> getRankLinks(Rank rank);
 }

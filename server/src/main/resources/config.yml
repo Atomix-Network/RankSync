@@ -89,14 +89,17 @@ reward:
 ranks:
   discord:
     administrator:
+      priority: 0
       minecraft: "admin"
       discord: "Minecraft Administrator"
     moderator:
       name-format: "Mod << %name%"
+      priority: 0
       minecraft: "mod"
       discord: "Minecraft Moderator"
     vip:
       name-format: "%name%"
+      priority: 0
       minecraft: "VIP"
       discord:
         - "VIP"

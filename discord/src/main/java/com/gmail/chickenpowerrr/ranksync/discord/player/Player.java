@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.exceptions.ErrorResponseException;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
+import org.bukkit.Bukkit;
 
 /**
  * This class represents a Discord user
@@ -103,6 +104,8 @@ public class Player implements com.gmail.chickenpowerrr.ranksync.api.player.Play
    */
   @Override
   public void update() {
+    org.bukkit.entity.Player player = Bukkit.getPlayer(uuid);
+    if (player != null && player.hasPermission("ranksync.ignore")) return;
     if (this.uuid != null) {
       this.bot.getEffectiveDatabase().getRanks(this.uuid).thenAccept(ranks -> {
         if (ranks != null) {
@@ -112,7 +115,7 @@ public class Player implements com.gmail.chickenpowerrr.ranksync.api.player.Play
         if (this.bot.doesUpdateNames()) {
           String username = this.nameResource.getName(this.uuid);
           if (ranks != null && !ranks.isEmpty()) {
-            setUsername(this.bot.getNameSyncFormat()
+            setUsername(this.rankFactory.getNameSyncFormat(ranks)
                 .replace("%name%", username)
                 .replace("%discord_rank%", ranks.get(0).getName()));
           } else {

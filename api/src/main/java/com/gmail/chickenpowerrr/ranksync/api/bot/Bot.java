@@ -125,4 +125,6 @@ public interface Bot<P, R> {
    * is still correct, should be greater than 0 if you want to use this feature
    */
   int getUpdateInterval();
+
+  void updateUsers();
 }

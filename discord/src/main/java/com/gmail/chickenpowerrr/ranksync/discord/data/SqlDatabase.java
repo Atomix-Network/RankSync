@@ -7,19 +7,17 @@ import com.gmail.chickenpowerrr.ranksync.api.player.Player;
 import com.gmail.chickenpowerrr.ranksync.api.rank.Rank;
 import com.gmail.chickenpowerrr.ranksync.api.rank.RankResource;
 import com.gmail.chickenpowerrr.ranksync.discord.language.Translation;
+import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import java.sql.*;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class uses a SQL server to save the synchronization data
@@ -44,19 +42,20 @@ public class SqlDatabase implements Database {
     this.bot = bot;
 
     if (properties.has("max_pool_size", "host", "port", "database", "username", "password")) {
-      this.dataSource = new HikariDataSource();
+      HikariConfig config = new HikariConfig();
+      config.setJdbcUrl(
+              "jdbc:mysql://" + properties.getString("host") + ":" +
+                      properties.getInt("port") + "/" +
+                      properties.getString("database"));
+      config.setUsername(properties.getString("username"));
+      config.setPassword(properties.getString("password"));
+      config.setMaximumPoolSize(properties.getInt("max_pool_size"));
+      config.addDataSourceProperty("useSSL", false);
+      config.addDataSourceProperty("serverTimezone", "UTC");
 
-      this.dataSource.setMaximumPoolSize(properties.getInt("max_pool_size"));
-      this.dataSource.setDataSourceClassName("com.mysql.cj.jdbc.MysqlDataSource");
-      this.dataSource.addDataSourceProperty("serverName", properties.getString("host"));
-      this.dataSource.addDataSourceProperty("port", properties.getInt("port"));
-      this.dataSource.addDataSourceProperty("databaseName", properties.getString("database"));
-      this.dataSource.addDataSourceProperty("user", properties.getString("username"));
-      this.dataSource.addDataSourceProperty("password", properties.getString("password"));
-      this.dataSource.addDataSourceProperty("useSSL", false);
-      this.dataSource.addDataSourceProperty("serverTimezone", "UTC");
-
-      this.dataSource.setConnectionTimeout(TimeUnit.SECONDS.toMillis(10));
+      this.dataSource = new HikariDataSource(config);
+      this.dataSource.setLeakDetectionThreshold(TimeUnit.SECONDS.toMillis(30));
+      this.dataSource.setConnectionTimeout(TimeUnit.SECONDS.toMillis(30));
     } else {
       throw new IllegalStateException(
           "Not all of the required properties for an SQL database have been entered");

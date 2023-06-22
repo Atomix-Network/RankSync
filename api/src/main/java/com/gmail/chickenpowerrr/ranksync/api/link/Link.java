@@ -27,6 +27,11 @@ public interface Link {
   String getNameFormat();
 
   /**
+   * Returns the priority of this link
+   */
+  int getPriority();
+
+  /**
    * Returns the bot which has to sync the rank
    */
   Bot<?, ?> getBot();

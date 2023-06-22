@@ -1,19 +1,15 @@
 package com.gmail.chickenpowerrr.ranksync.server.rank;
 
 import com.gmail.chickenpowerrr.ranksync.api.bot.Bot;
-import com.gmail.chickenpowerrr.ranksync.api.link.Link;
 import com.gmail.chickenpowerrr.ranksync.api.rank.Rank;
 import com.gmail.chickenpowerrr.ranksync.server.language.Translation;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.gmail.chickenpowerrr.ranksync.api.link.Link;
+import lombok.extern.slf4j.Slf4j;
+
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * This class can be used to save the data from the config.yml and use it to sync the ranks
@@ -144,8 +140,12 @@ public class RankHelper implements com.gmail.chickenpowerrr.ranksync.api.rank.Ra
   @Override
   public Collection<Link> getLinks() {
     return this.ranks.values().stream()
-        .flatMap(Collection::stream)
-        .distinct()
-        .collect(Collectors.toList());
+            .flatMap(Collection::stream)
+            .distinct()
+            .collect(Collectors.toList());
+  }
+
+  public List<Link> getRankLinks(Rank rank) {
+    return this.ranks.getOrDefault(rank.getName().toLowerCase(Locale.ROOT), new ArrayList<>());
   }
 }

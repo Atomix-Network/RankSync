@@ -17,13 +17,6 @@ import com.gmail.chickenpowerrr.ranksync.discord.command.LinkCommand;
 import com.gmail.chickenpowerrr.ranksync.discord.event.DiscordCommandListeners;
 import com.gmail.chickenpowerrr.ranksync.discord.event.DiscordEventListeners;
 import com.gmail.chickenpowerrr.ranksync.discord.language.Translation;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import javax.security.auth.login.LoginException;
 import lombok.Getter;
 import lombok.Setter;
 import net.dv8tion.jda.api.JDA;
@@ -31,6 +24,14 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
+
+import javax.security.auth.login.LoginException;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class DiscordBot implements Bot<Member, Role> {
 
@@ -104,7 +105,6 @@ public class DiscordBot implements Bot<Member, Role> {
       this.commandFactory.addCommand(new LinkCommand("link", new HashSet<>()));
       RankSyncApi.getApi().execute(new BotEnabledEvent(this));
       this.enabled = true;
-      updateUsers();
     } else {
       RankSyncApi.getApi()
           .execute(new BotForceShutdownEvent(this, "===================================",
@@ -172,15 +172,16 @@ public class DiscordBot implements Bot<Member, Role> {
     return this.jda;
   }
 
-  private void updateUsers() {
+  public void updateUsers() {
     if (getUpdateInterval() > 0) {
       new Timer().scheduleAtFixedRate(
-          new TimerTask() {
-            @Override
-            public void run() {
-              guild.getMembers().stream().map(getPlayerFactory()::getPlayer).forEach(future ->
-                future.thenAccept(Player::update));
-            }
+              new TimerTask() {
+                @Override
+                public void run() {
+                  guild.getMembers().stream().map(getPlayerFactory()::getPlayer).forEach(future -> {
+                    future.thenAccept(Player::update);
+                  });
+                }
           }, TimeUnit.MINUTES.toMillis(getUpdateInterval()),
           TimeUnit.MINUTES.toMillis(getUpdateInterval()));
     }

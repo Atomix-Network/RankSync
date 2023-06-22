@@ -12,5 +12,6 @@ public class Link implements com.gmail.chickenpowerrr.ranksync.api.link.Link {
   private final List<String> minecraftRanks;
   private final List<String> platformRanks;
   private final String nameFormat;
+  private final int priority;
   private final Bot<?, ?> bot;
 }

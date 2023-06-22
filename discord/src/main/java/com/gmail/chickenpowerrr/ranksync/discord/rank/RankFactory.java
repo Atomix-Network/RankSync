@@ -1,21 +1,17 @@
 package com.gmail.chickenpowerrr.ranksync.discord.rank;
 
 import com.gmail.chickenpowerrr.ranksync.api.bot.Bot;
+import com.gmail.chickenpowerrr.ranksync.api.link.Link;
 import com.gmail.chickenpowerrr.ranksync.api.rank.Rank;
 import com.gmail.chickenpowerrr.ranksync.api.rank.RankHelper;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.OptionalInt;
-import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * This class contains the functionalities to get a representation of a Discord role
@@ -234,10 +230,33 @@ public class RankFactory implements com.gmail.chickenpowerrr.ranksync.api.rank.R
   @Override
   public String getNameSyncFormat(Rank rank) {
     return Objects.requireNonNull(this.rankHelpers.stream()
-        .map(rankHelper -> rankHelper.getLinks().stream()
-            .filter(link -> link.getPlatformRanks().stream()
-                .anyMatch(platFormRank -> platFormRank.equalsIgnoreCase(rank.getName())))
-            .findFirst().orElse(null))
-        .findFirst().orElse(null)).getNameFormat();
+            .map(rankHelper -> rankHelper.getLinks().stream()
+                    .filter(link -> link.getPlatformRanks().stream()
+                            .anyMatch(platFormRank -> platFormRank.equalsIgnoreCase(rank.getName())))
+                    .findFirst().orElse(null))
+            .findFirst().orElse(null)).getNameFormat();
+  }
+
+  public String getNameSyncFormat(List<Rank> ranks) {
+    List<Link> links = new ArrayList<>();
+    for (Rank rank : ranks) {
+      for (RankHelper rankHelper : this.rankHelpers) {
+        links.addAll(rankHelper.getRankLinks(rank));
+      }
+    }
+    Link higherPriorityLink = null;
+    for (Link link : links) {
+      if (higherPriorityLink == null) {
+        higherPriorityLink = link;
+        continue;
+      }
+      if (higherPriorityLink.getPriority() < link.getPriority()) continue;
+
+      higherPriorityLink = link;
+    }
+    if (higherPriorityLink == null) {
+      return "";
+    }
+    return higherPriorityLink.getNameFormat();
   }
 }
