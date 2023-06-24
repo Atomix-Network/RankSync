@@ -21,6 +21,7 @@ import lombok.Getter;
 import lombok.Setter;
 import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.event.node.NodeMutateEvent;
+import net.luckperms.api.model.user.User;
 import net.milkbowl.vault.permission.Permission;
 import org.bstats.bukkit.Metrics;
 import org.bstats.charts.SimplePie;
@@ -130,8 +131,10 @@ public final class RankSyncPlugin extends JavaPlugin implements RankSyncServerPl
     Bukkit.getPluginManager().registerEvents(new PlayerQuitEventListener(this.linkHelper), this);
     if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
       LuckPermsProvider.get().getEventBus().subscribe(this, NodeMutateEvent.class, event -> {
-        UUID playerUuid = event.getLuckPerms().getUserManager().getUser(event.getTarget().getFriendlyName()).getUniqueId();
-        linkHelper.updateRanks(playerUuid);
+        User user = event.getLuckPerms().getUserManager().getUser(event.getTarget().getFriendlyName());
+        if (user == null) return;
+
+        linkHelper.updateRanks(user.getUniqueId());
       });
     }
   }

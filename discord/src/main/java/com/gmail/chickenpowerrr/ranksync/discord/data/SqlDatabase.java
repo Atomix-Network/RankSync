@@ -54,8 +54,8 @@ public class SqlDatabase implements Database {
       config.addDataSourceProperty("serverTimezone", "UTC");
 
       this.dataSource = new HikariDataSource(config);
-      this.dataSource.setLeakDetectionThreshold(TimeUnit.SECONDS.toMillis(30));
-      this.dataSource.setConnectionTimeout(TimeUnit.SECONDS.toMillis(30));
+      this.dataSource.setLeakDetectionThreshold(TimeUnit.SECONDS.toMillis(60));
+      this.dataSource.setConnectionTimeout(TimeUnit.SECONDS.toMillis(60));
     } else {
       throw new IllegalStateException(
           "Not all of the required properties for an SQL database have been entered");
