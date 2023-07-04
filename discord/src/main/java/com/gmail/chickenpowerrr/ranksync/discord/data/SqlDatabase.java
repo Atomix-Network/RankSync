@@ -259,6 +259,7 @@ public class SqlDatabase implements Database {
      * @param version the version the database has been designed for
      */
     private void update(String version) {
+      System.out.println(version);
       try (Statement statement = this.connection.createStatement()) {
         if (version != null) {
           switch (version) {
@@ -269,17 +270,22 @@ public class SqlDatabase implements Database {
               statement.execute("UPDATE bot SET platform = 'Discord';");
               // Fall through
             case "1.2.0":
-              statement.execute("ALTER TABLE player "
-                  + "ADD COLUMN sync_rewards INT UNSIGNED NOT NULL DEFAULT 0;");
-              statement.execute("ALTER TABLE player "
-                  + "ADD COLUMN unsync_rewards INT UNSIGNED NOT NULL DEFAULT 0;");
+              generateDefaultTables();
 
+              DatabaseMetaData metaData = connection.getMetaData();
+              if (!metaData.getColumns(null, null, "player", "sync_rewards").next()) {
+                statement.execute("ALTER TABLE player "
+                        + "ADD COLUMN sync_rewards INT UNSIGNED NOT NULL DEFAULT 0;");
+              }
+              if (!metaData.getColumns(null, null, "player", "unsync_rewards").next()) {
+                statement.execute("ALTER TABLE player "
+                        + "ADD COLUMN unsync_rewards INT UNSIGNED NOT NULL DEFAULT 0;");
+              }
               statement
                   .execute("create table if not exists version (version varchar(10) not null);");
               statement.execute("DELETE FROM version");
               statement.execute("INSERT INTO version (version) VALUES ('1.4.0');");
 
-              generateDefaultTables();
               break;
             case "1.4.0":
               // Up to date!
